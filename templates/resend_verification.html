@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block title %}Reenviar verificação — IAM App{% endblock %}
+{% block wrapper_class %}container-sm{% endblock %}
+{% block content %}
+<div class="card">
+  <h2>Reenviar verificação</h2>
+  <p class="text-muted" style="margin-bottom:1.5rem">Informe seu e-mail para receber um novo link de verificação.</p>
+  <form method="POST">
+    <div class="form-group">
+      <label>E-mail</label>
+      <input type="email" name="email" required autofocus placeholder="seu@email.com"/>
+    </div>
+    <button type="submit" class="btn btn-primary btn-full mt-2">Reenviar</button>
+  </form>
+  <hr class="divider"/>
+  <p class="text-center text-muted">
+    <a class="link" href="{{ url_for('auth.login') }}">Voltar ao login</a>
+  </p>
+</div>
+{% endblock %}

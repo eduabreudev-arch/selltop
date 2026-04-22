@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% block title %}Meu Perfil — IAM App{% endblock %}
+{% block content %}
+<h1 style="font-size:22px;font-weight:500;margin-bottom:2rem">Meu perfil</h1>
+
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem">
+
+  <!-- Atualizar nome -->
+  <div class="card">
+    <h2>Dados pessoais</h2>
+    <form method="POST">
+      <input type="hidden" name="action" value="update_name"/>
+      <div class="form-group">
+        <label>Nome</label>
+        <input type="text" name="name" value="{{ session.user_name }}" required/>
+      </div>
+      <div class="form-group">
+        <label>E-mail</label>
+        <input type="email" value="{{ session.user_email }}" disabled style="background:#f5f5f2;color:#888"/>
+      </div>
+      <button type="submit" class="btn btn-primary mt-1">Salvar</button>
+    </form>
+  </div>
+
+  <!-- Alterar senha -->
+  <div class="card">
+    <h2>Alterar senha</h2>
+    <form method="POST">
+      <input type="hidden" name="action" value="change_password"/>
+      <div class="form-group">
+        <label>Senha atual</label>
+        <input type="password" name="current_password" required placeholder="••••••••"/>
+      </div>
+      <div class="form-group">
+        <label>Nova senha</label>
+        <input type="password" name="new_password" required placeholder="••••••••"/>
+        <p class="pw-hint">Mínimo 8 caracteres, 1 maiúscula, 1 número, 1 especial.</p>
+      </div>
+      <button type="submit" class="btn btn-primary mt-1">Alterar senha</button>
+    </form>
+  </div>
+
+</div>
+
+<!-- Excluir conta -->
+<div class="card" style="margin-top:1.5rem;border-color:#f5c0bc">
+  <h2 style="color:#c0392b">Excluir conta</h2>
+  <p class="text-muted" style="margin-bottom:1rem;font-size:13px">
+    Esta ação é permanente e não pode ser desfeita. Todos os seus dados serão removidos.
+  </p>
+  <form method="POST" onsubmit="return confirm('Tem certeza? Esta ação não pode ser desfeita.')">
+    <input type="hidden" name="action" value="delete_account"/>
+    <div class="form-group" style="max-width:320px">
+      <label>Confirme sua senha para excluir</label>
+      <input type="password" name="confirm_password" required placeholder="••••••••"/>
+    </div>
+    <button type="submit" class="btn btn-danger mt-1">Excluir minha conta</button>
+  </form>
+</div>
+{% endblock %}

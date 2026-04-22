@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block title %}Dashboard — IAM App{% endblock %}
+{% block content %}
+<h1 style="font-size:22px;font-weight:500;margin-bottom:0.25rem">Olá, {{ session.user_name }}!</h1>
+<p class="text-muted" style="margin-bottom:2rem">Bem-vindo ao seu painel.</p>
+
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-bottom:2rem">
+  <div class="card" style="padding:1.25rem">
+    <p class="text-muted" style="font-size:12px;margin-bottom:4px">Seu e-mail</p>
+    <p style="font-size:14px;font-weight:500">{{ session.user_email }}</p>
+  </div>
+  <div class="card" style="padding:1.25rem">
+    <p class="text-muted" style="font-size:12px;margin-bottom:4px">Papel</p>
+    <span class="badge badge-{{ session.user_role }}">{{ session.user_role }}</span>
+  </div>
+  <div class="card" style="padding:1.25rem">
+    <p class="text-muted" style="font-size:12px;margin-bottom:4px">Ações rápidas</p>
+    <a class="link" href="{{ url_for('auth.profile') }}">Editar perfil →</a>
+  </div>
+  {% if session.user_role == 'admin' %}
+  <div class="card" style="padding:1.25rem;border-color:#b3cef5">
+    <p class="text-muted" style="font-size:12px;margin-bottom:4px">Administração</p>
+    <a class="link" href="{{ url_for('auth.admin_users') }}">Gerenciar usuários →</a>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

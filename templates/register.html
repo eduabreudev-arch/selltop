@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block title %}Cadastro — IAM App{% endblock %}
+{% block wrapper_class %}container-sm{% endblock %}
+{% block content %}
+<div class="card">
+  <h2>Criar conta</h2>
+  <form method="POST">
+    <div class="form-group">
+      <label>Nome completo</label>
+      <input type="text" name="name" required autofocus placeholder="Seu nome"/>
+    </div>
+    <div class="form-group">
+      <label>E-mail</label>
+      <input type="email" name="email" required placeholder="seu@email.com"/>
+    </div>
+    <div class="form-group">
+      <label>Senha</label>
+      <input type="password" name="password" required placeholder="••••••••"/>
+      <p class="pw-hint">Mínimo 8 caracteres, 1 maiúscula, 1 número, 1 caractere especial.</p>
+    </div>
+    <button type="submit" class="btn btn-primary btn-full mt-2">Criar conta</button>
+  </form>
+  <hr class="divider"/>
+  <p class="text-center text-muted">
+    Já tem conta? <a class="link" href="{{ url_for('auth.login') }}">Entrar</a>
+  </p>
+</div>
+{% endblock %}

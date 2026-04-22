@@ -1,0 +1,6 @@
+# IAM App — dependências
+# Instale com: pip install -r requirements.txt
+
+flask>=3.0,<4.0
+werkzeug>=3.0,<4.0
+itsdangerous>=2.1,<3.0s

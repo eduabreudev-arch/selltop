@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+{% block title %}Usuários — Admin{% endblock %}
+{% block content %}
+<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem">
+  <h1 style="font-size:22px;font-weight:500">Gerenciar usuários</h1>
+  <span class="badge badge-admin">painel admin</span>
+</div>
+
+<div class="card" style="padding:0;overflow:hidden">
+  <table>
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>Nome</th>
+        <th>E-mail</th>
+        <th>Papel</th>
+        <th>Status</th>
+        <th>Verificado</th>
+        <th>Último login</th>
+        <th>Ações</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for u in users %}
+      <tr>
+        <td style="color:#888">{{ u.id }}</td>
+        <td style="font-weight:500">{{ u.name }}</td>
+        <td>{{ u.email }}</td>
+        <td>
+          <form method="POST" action="{{ url_for('auth.admin_change_role', user_id=u.id) }}" style="display:inline">
+            <select name="role" onchange="this.form.submit()"
+              style="font-size:11px;padding:3px 6px;border-radius:6px;border:0.5px solid #ccc;background:#fff"
+              {% if u.id == session.user_id %}disabled{% endif %}>
+              <option value="user"  {% if u.role == 'user'  %}selected{% endif %}>user</option>
+              <option value="admin" {% if u.role == 'admin' %}selected{% endif %}>admin</option>
+            </select>
+          </form>
+        </td>
+        <td>
+          <form method="POST" action="{{ url_for('auth.admin_change_status', user_id=u.id) }}" style="display:inline">
+            <select name="status" onchange="this.form.submit()"
+              style="font-size:11px;padding:3px 6px;border-radius:6px;border:0.5px solid #ccc;background:#fff"
+              {% if u.id == session.user_id %}disabled{% endif %}>
+              <option value="pending"   {% if u.status == 'pending'   %}selected{% endif %}>pending</option>
+              <option value="active"    {% if u.status == 'active'    %}selected{% endif %}>active</option>
+              <option value="suspended" {% if u.status == 'suspended' %}selected{% endif %}>suspended</option>
+            </select>
+          </form>
+        </td>
+        <td>
+          {% if u.email_verified %}
+            <span class="badge badge-active">sim</span>
+          {% else %}
+            <span class="badge badge-pending">não</span>
+          {% endif %}
+        </td>
+        <td style="color:#888;font-size:12px">
+          {% if u.last_login %}{{ u.last_login[:16].replace('T',' ') }}{% else %}—{% endif %}
+        </td>
+        <td>
+          {% if u.id != session.user_id %}
+          <form method="POST" action="{{ url_for('auth.admin_delete_user', user_id=u.id) }}"
+                onsubmit="return confirm('Excluir {{ u.name }}? Esta ação não pode ser desfeita.')">
+            <button type="submit" class="btn btn-danger btn-sm">Excluir</button>
+          </form>
+          {% else %}
+            <span class="text-muted">você</span>
+          {% endif %}
+        </td>
+      </tr>
+      {% else %}
+      <tr><td colspan="8" style="text-align:center;color:#888;padding:2rem">Nenhum usuário cadastrado.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}
