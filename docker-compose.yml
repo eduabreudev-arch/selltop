@@ -1,0 +1,15 @@
+version: "3.9"
+
+services:
+  app:
+    build: .
+    ports:
+      - "5000:5000"
+    env_file:
+      - .env
+    volumes:
+      # Monta o código local no container — qualquer alteração reflete em tempo real
+      - .:/app
+    environment:
+      - FLASK_ENV=development
+    restart: unless-stopped
