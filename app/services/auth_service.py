@@ -6,8 +6,8 @@ from itsdangerous import URLSafeTimedSerializer, BadSignature, SignatureExpired
 from werkzeug.security import generate_password_hash, check_password_hash
 
 from models.user import User, UserStatus, UserRole
-from repositories.user_repository import UserRepository
-from services.email_service import EmailService
+from app.repositories.user_repository import UserRepository
+from app.services.email_service import EmailService
 
 logger = logging.getLogger(__name__)
 

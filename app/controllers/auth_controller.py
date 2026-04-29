@@ -2,7 +2,7 @@ from flask import (
     Blueprint, render_template, request, redirect,
     url_for, session, flash, current_app, g
 )
-from services.auth_service import AuthService, AuthError
+from app.services.auth_service import AuthService, AuthError
 from middleware.auth_middleware import login_required, admin_required, guest_only
 
 auth_bp = Blueprint("auth", __name__, url_prefix="/auth")
