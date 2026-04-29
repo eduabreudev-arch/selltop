@@ -1,9 +1,13 @@
+# -------------------------
 # Banco de dados
+# -------------------------
 *.db
 *.sqlite
 *.sqlite3
 
+# -------------------------
 # Python
+# -------------------------
 __pycache__/
 *.py[cod]
 *.pyo
@@ -14,28 +18,56 @@ dist/
 build/
 *.egg
 
+# -------------------------
 # Ambiente virtual
+# -------------------------
 venv/
 .venv/
 env/
-.env/
 
-# Variáveis de ambiente (NUNCA commitar)
+# -------------------------
+# Variáveis de ambiente
+# -------------------------
 .env
-.env.example
 .env.local
 .env.production
 
-# IDEs
+# IMPORTANTE: manter o exemplo versionado
+!.env.example
+
+# -------------------------
+# IDEs / sistema
+# -------------------------
 .vscode/
 .idea/
 *.swp
 *.swo
 .DS_Store
 
+# -------------------------
 # Logs
+# -------------------------
 *.log
 logs/
 
-# Uploads / arquivos gerados em runtime
+# -------------------------
+# Arquivos runtime
+# -------------------------
 instance/
+
+# -------------------------
+# Docker
+# -------------------------
+docker-compose.override.yml
+
+# -------------------------
+# Flask / migrations
+# -------------------------
+# NÃO ignorar migrations!
+# migrations/versions/ deve ser versionado
+
+# -------------------------
+# Outros
+# -------------------------
+*.bak
+*.tmp

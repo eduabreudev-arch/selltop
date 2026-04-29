@@ -1,18 +1,35 @@
 import sqlite3
+from xmlrpc import client
+import libsql_experimental as libsql
 from datetime import datetime, timezone
 from typing import Optional
 
 from models.user import User
 
-def _get_conn(db_path: str) -> sqlite3.Connection:
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Helpers de conexão
+# ─────────────────────────────────────────────────────────────────────────────
+
+def _get_local_conn(db_path: str) -> sqlite3.Connection:
+    """Conexão SQLite local — usado apenas em desenvolvimento."""
     conn = sqlite3.connect(db_path)
     conn.row_factory = sqlite3.Row
     conn.execute("PRAGMA journal_mode=WAL")
     conn.execute("PRAGMA foreign_keys=ON")
     return conn
 
+def _get_turso_client(url: str, auth_token: str):
+    return libsql.connect(database=url, auth_token=auth_token)
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Init do banco local (apenas dev — sem TURSO_URL)
+# ─────────────────────────────────────────────────────────────────────────────
+
 def init_db(db_path: str) -> None:
-    with _get_conn(db_path) as conn:
+    """Cria as tabelas no SQLite local se ainda não existirem."""
+    with _get_local_conn(db_path) as conn:
         conn.execute("""
             CREATE TABLE IF NOT EXISTS users (
                 id              INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -31,68 +48,105 @@ def init_db(db_path: str) -> None:
         """)
         conn.execute("CREATE INDEX IF NOT EXISTS idx_users_email ON users(email)")
 
-class UserRepository:
-    def __init__(self, db_path: str):
-        self._db = db_path
 
-    # ------------------------------------------------------------------ #
-    # Leitura
-    # ------------------------------------------------------------------ #
+# ─────────────────────────────────────────────────────────────────────────────
+# Repositório — funciona com SQLite local e Turso transparentemente
+# ─────────────────────────────────────────────────────────────────────────────
+
+class UserRepository:
+    def __init__(self, db_config: dict):
+        """
+        db_config exemplos:
+          Dev local:  {"path": "selltop.db"}
+          Produção:   {"url": "libsql://...", "auth_token": "..."}
+        """
+        self._config = db_config
+        self._is_turso = "url" in db_config
+
+    # ── Execução de queries ───────────────────────────────────────────────────
+
+    def _execute(self, sql: str, params: tuple = ()) -> list[dict]:
+        if self._is_turso:
+            client = _get_turso_client(
+                self._config["url"], self._config["auth_token"]
+            )
+            cursor = client.execute(sql, tuple(params))
+            rows = cursor.fetchall()
+            if not rows:
+                return []
+            cols = [desc[0] for desc in cursor.description]
+            return [dict(zip(cols, row)) for row in rows]
+        else:
+            with _get_local_conn(self._config["path"]) as conn:
+                rows = conn.execute(sql, params).fetchall()
+                return [dict(r) for r in rows]
+
+    def _execute_write(self, sql: str, params: tuple = ()) -> int:
+        if self._is_turso:
+            client = _get_turso_client(
+                self._config["url"], self._config["auth_token"]
+            )
+            cursor = client.execute(sql, tuple(params))
+            client.commit()
+            return cursor.lastrowid or 0
+        else:
+            with _get_local_conn(self._config["path"]) as conn:
+                cur = conn.execute(sql, params)
+                return cur.lastrowid
+
+    # ── Leitura ───────────────────────────────────────────────────────────────
+
     def find_by_id(self, user_id: int) -> Optional[User]:
-        with _get_conn(self._db) as conn:
-            row = conn.execute("SELECT * FROM users WHERE id = ?", (user_id,)).fetchone()
-        return User.from_row(dict(row)) if row else None
+        rows = self._execute("SELECT * FROM users WHERE id = ?", (user_id,))
+        return User.from_row(rows[0]) if rows else None
 
     def find_by_email(self, email: str) -> Optional[User]:
-        with _get_conn(self._db) as conn:
-            row = conn.execute(
-                "SELECT * FROM users WHERE email = ? COLLATE NOCASE", (email,)
-            ).fetchone()
-        return User.from_row(dict(row)) if row else None
+        rows = self._execute(
+            "SELECT * FROM users WHERE email = ? COLLATE NOCASE", (email,)
+        )
+        return User.from_row(rows[0]) if rows else None
 
     def list_all(self) -> list[User]:
-        with _get_conn(self._db) as conn:
-            rows = conn.execute("SELECT * FROM users ORDER BY created_at DESC").fetchall()
-        return [User.from_row(dict(r)) for r in rows]
+        rows = self._execute("SELECT * FROM users ORDER BY created_at DESC")
+        return [User.from_row(r) for r in rows]
 
-    # ------------------------------------------------------------------ #
-    # Escrita
-    # ------------------------------------------------------------------ #
+    def email_exists(self, email: str) -> bool:
+        rows = self._execute(
+            "SELECT 1 FROM users WHERE email = ? COLLATE NOCASE", (email,)
+        )
+        return len(rows) > 0
+
+    # ── Escrita ───────────────────────────────────────────────────────────────
+
     def create(self, user: User) -> User:
-        with _get_conn(self._db) as conn:
-            cur = conn.execute(
-                """INSERT INTO users
-                   (name, email, password_hash, role, status, email_verified,
-                    created_at, updated_at, last_login, failed_attempts, locked_until)
-                   VALUES (?,?,?,?,?,?,?,?,?,?,?)""",
-                (user.name, user.email, user.password_hash, user.role, user.status,
-                 int(user.email_verified), user.created_at, user.updated_at,
-                 user.last_login, user.failed_attempts, user.locked_until),
-            )
-            user.id = cur.lastrowid
+        last_id = self._execute_write(
+            """INSERT INTO users
+               (name, email, password_hash, role, status, email_verified,
+                created_at, updated_at, last_login, failed_attempts, locked_until)
+               VALUES (?,?,?,?,?,?,?,?,?,?,?)""",
+            (
+                user.name, user.email, user.password_hash, user.role, user.status,
+                int(user.email_verified), user.created_at, user.updated_at,
+                user.last_login, user.failed_attempts, user.locked_until,
+            ),
+        )
+        user.id = last_id
         return user
 
     def update(self, user: User) -> None:
         user.updated_at = datetime.now(timezone.utc).isoformat()
-        with _get_conn(self._db) as conn:
-            conn.execute(
-                """UPDATE users SET
-                   name=?, email=?, password_hash=?, role=?, status=?,
-                   email_verified=?, updated_at=?, last_login=?,
-                   failed_attempts=?, locked_until=?
-                   WHERE id=?""",
-                (user.name, user.email, user.password_hash, user.role, user.status,
-                 int(user.email_verified), user.updated_at, user.last_login,
-                 user.failed_attempts, user.locked_until, user.id),
-            )
+        self._execute_write(
+            """UPDATE users SET
+               name=?, email=?, password_hash=?, role=?, status=?,
+               email_verified=?, updated_at=?, last_login=?,
+               failed_attempts=?, locked_until=?
+               WHERE id=?""",
+            (
+                user.name, user.email, user.password_hash, user.role, user.status,
+                int(user.email_verified), user.updated_at, user.last_login,
+                user.failed_attempts, user.locked_until, user.id,
+            ),
+        )
 
     def delete(self, user_id: int) -> None:
-        with _get_conn(self._db) as conn:
-            conn.execute("DELETE FROM users WHERE id = ?", (user_id,))
-
-    def email_exists(self, email: str) -> bool:
-        with _get_conn(self._db) as conn:
-            row = conn.execute(
-                "SELECT 1 FROM users WHERE email = ? COLLATE NOCASE", (email,)
-            ).fetchone()
-        return row is not None
+        self._execute_write("DELETE FROM users WHERE id = ?", (user_id,))

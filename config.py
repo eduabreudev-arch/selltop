@@ -11,7 +11,7 @@ class Config:
     TURSO_AUTH_TOKEN = os.environ.get("TURSO_AUTH_TOKEN", "")
 
     # Mantém DATABASE para compatibilidade local (SQLite via libsql)
-    DATABASE = os.environ.get("DATABASE", "seltop_app.db")
+    DATABASE = os.environ.get("DATABASE", "selt_app.db")
 
     # ── E-mail ──────────────────────────────────────────────────────
     MAIL_SERVER = os.environ.get("MAIL_SERVER", "smtp.gmail.com")
@@ -19,7 +19,7 @@ class Config:
     MAIL_USE_TLS = True
     MAIL_USERNAME = os.environ.get("MAIL_USERNAME", "")
     MAIL_PASSWORD = os.environ.get("MAIL_PASSWORD", "")
-    MAIL_FROM = os.environ.get("MAIL_FROM", "noreply@seltopapp.com")
+    MAIL_FROM = os.environ.get("MAIL_FROM", "noreply@iamapp.com")
 
     # ── Upstash Redis (força bruta) ─────────────────────────────────
     UPSTASH_REDIS_REST_URL = os.environ.get("UPSTASH_REDIS_REST_URL", "")

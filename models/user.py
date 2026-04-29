@@ -61,3 +61,26 @@ class User:
         d.pop("failed_attempts", None)
         d.pop("locked_until", None)
         return d
+
+# ─────────────────────────────────────────────────────────────────────────────
+# SQLAlchemy metadata — usado apenas pelo Alembic para autogenerate
+# Não afeta nada no funcionamento do app
+# ─────────────────────────────────────────────────────────────────────────────
+from sqlalchemy import MetaData, Table, Column, Integer, Text
+
+metadata = MetaData()
+
+users_table = Table("users", metadata,
+    Column("id",             Integer, primary_key=True, autoincrement=True),
+    Column("name",           Text,    nullable=False),
+    Column("email",          Text,    nullable=False, unique=True),
+    Column("password_hash",  Text,    nullable=False),
+    Column("role",           Text,    nullable=False, server_default="user"),
+    Column("status",         Text,    nullable=False, server_default="pending"),
+    Column("email_verified", Integer, nullable=False, server_default="0"),
+    Column("created_at",     Text,    nullable=False),
+    Column("updated_at",     Text,    nullable=False),
+    Column("last_login",     Text),
+    Column("failed_attempts",Integer, nullable=False, server_default="0"),
+    Column("locked_until",   Text),
+)
