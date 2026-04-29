@@ -18,7 +18,9 @@ logging.basicConfig(
 )
 
 
-def create_app(env: str = "development") -> Flask:
+def create_app() -> Flask:
+    env = os.getenv("FLASK_ENV", "development")
+
     app = Flask(__name__)
     cfg = config.get(env, config["default"])
     app.config.from_object(cfg)
@@ -73,6 +75,6 @@ def create_app(env: str = "development") -> Flask:
 
 
 if __name__ == "__main__":
-    app = create_app("development")
+    app = create_app()
     print("\n Selltop rodando em http://localhost:5000\n")
     app.run(host="0.0.0.0", debug=True, port=5000)
