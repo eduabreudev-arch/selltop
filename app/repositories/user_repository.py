@@ -4,7 +4,7 @@ import libsql_experimental as libsql
 from datetime import datetime, timezone
 from typing import Optional
 
-from models.user import User
+from app.models.user import User
 
 
 # ─────────────────────────────────────────────────────────────────────────────

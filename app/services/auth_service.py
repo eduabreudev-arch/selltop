@@ -5,7 +5,7 @@ from datetime import datetime, timezone, timedelta
 from itsdangerous import URLSafeTimedSerializer, BadSignature, SignatureExpired
 from werkzeug.security import generate_password_hash, check_password_hash
 
-from models.user import User, UserStatus, UserRole
+from app.models.user import User, UserStatus, UserRole
 from app.repositories.user_repository import UserRepository
 from app.services.email_service import EmailService
 
