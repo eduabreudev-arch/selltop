@@ -8,6 +8,7 @@ services:
     volumes:
       # Monta o código local no container — qualquer alteração reflete em tempo real
       - .:/app
+      - /app/instance
     environment:
       - FLASK_ENV=development
     restart: unless-stopped

@@ -11,7 +11,7 @@ try:
 except ImportError:
     pass
 
-from models.user import metadata
+from app.models.user import metadata
 
 config = context.config
 if config.config_file_name is not None:
@@ -19,7 +19,7 @@ if config.config_file_name is not None:
 
 turso_url = os.environ.get("TURSO_URL", "")
 turso_token = os.environ.get("TURSO_AUTH_TOKEN", "")
-db_path = os.environ.get("DATABASE", "selltop.db")
+db_path = os.environ.get("DATABASE", "instance/selltop.db")
 
 def run_migrations_turso() -> None:
     import libsql_experimental as libsql

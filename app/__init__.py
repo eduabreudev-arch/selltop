@@ -1,5 +1,4 @@
-import os
-import logging
+import os, logging, pathlib
 from datetime import timedelta
 from flask import Flask, redirect, url_for, session
 
@@ -26,6 +25,9 @@ def create_app() -> Flask:
         seconds=app.config["PERMANENT_SESSION_LIFETIME"]
     )
 
+    # Garante que a pasta instance existe
+    pathlib.Path("instance").mkdir(exist_ok=True)
+    
     # ── Banco de dados ─────────────────────────────────────────────
     turso_url = app.config.get("TURSO_URL", "")
     turso_token = app.config.get("TURSO_AUTH_TOKEN", "")
