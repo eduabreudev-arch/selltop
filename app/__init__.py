@@ -1,12 +1,21 @@
-import os, logging, pathlib
+import os
+import logging
+import pathlib
 from datetime import timedelta
-from flask import Flask, redirect, url_for, session
+
+from flask import Flask, redirect, url_for, session, render_template
 
 from app.config import config
 from app.repositories.user_repository import UserRepository, init_db
 from app.services.auth_service import AuthService
 from app.services.email_service import EmailService
+
+# Blueprints
 from app.controllers.auth_controller import auth_bp
+from app.controllers.user_controller import user_bp
+from app.controllers.admin_controller import admin_bp
+from app.controllers.pages_controller import pages_bp
+
 
 logging.basicConfig(
     level=logging.INFO,
@@ -18,6 +27,8 @@ def create_app() -> Flask:
     env = os.getenv("FLASK_ENV", "development")
 
     app = Flask(__name__)
+
+    # ── Configuração ───────────────────────────────────────────────
     cfg = config.get(env, config["default"])
     app.config.from_object(cfg)
 
@@ -27,7 +38,7 @@ def create_app() -> Flask:
 
     # Garante que a pasta instance existe
     pathlib.Path("instance").mkdir(exist_ok=True)
-    
+
     # ── Banco de dados ─────────────────────────────────────────────
     turso_url = app.config.get("TURSO_URL", "")
     turso_token = app.config.get("TURSO_AUTH_TOKEN", "")
@@ -53,21 +64,32 @@ def create_app() -> Flask:
 
     # ── Blueprints ─────────────────────────────────────────────────
     app.register_blueprint(auth_bp)
+    app.register_blueprint(user_bp)
+    app.register_blueprint(admin_bp)
+    app.register_blueprint(pages_bp)
 
+    # ── Rotas base ─────────────────────────────────────────────────
     @app.route("/")
     def index():
         if "user_id" in session:
-            return redirect(url_for("auth.dashboard"))
+            return redirect(url_for("pages.dashboard"))
         return redirect(url_for("auth.login"))
 
+    # ── Handlers de erro ───────────────────────────────────────────
     @app.errorhandler(403)
     def forbidden(e):
-        from flask import render_template
-        return render_template("error.html", code=403, message="Acesso negado."), 403
+        return render_template(
+            "pages/error.html",
+            code=403,
+            message="Acesso negado."
+        ), 403
 
     @app.errorhandler(404)
     def not_found(e):
-        from flask import render_template
-        return render_template("error.html", code=404, message="Página não encontrada."), 404
+        return render_template(
+            "pages/error.html",
+            code=404,
+            message="Página não encontrada."
+        ), 404
 
     return app
