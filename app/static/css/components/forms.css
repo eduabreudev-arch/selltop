@@ -1,0 +1,82 @@
+.form-group {
+  margin-bottom: 1.2rem;
+}
+
+.form-label {
+  display: block;
+
+  margin-bottom: 0.55rem;
+
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.input-wrapper {
+  position: relative;
+}
+
+.form-control {
+  width: 100%;
+  height: 48px;
+
+  border-radius: 12px;
+
+  border: 1px solid var(--border);
+
+  background: var(--surface);
+
+  color: var(--text);
+
+  padding: 0 14px;
+
+  transition: all var(--transition);
+}
+
+.form-control:focus {
+  outline: none;
+
+  border-color: rgba(37, 99, 235, 0.55);
+
+  box-shadow:
+    0 0 0 4px rgba(37, 99, 235, 0.08);
+}
+
+.form-control::placeholder {
+  color: var(--text-muted);
+}
+
+.toggle-password {
+  position: absolute;
+
+  top: 50%;
+  right: 12px;
+
+  transform: translateY(-50%);
+
+  border: none;
+  background: transparent;
+
+  color: var(--text-muted);
+
+  cursor: pointer;
+}
+
+.toggle-password:hover {
+  color: var(--text);
+}
+
+.error-text {
+  margin-top: 0.4rem;
+
+  color: var(--danger);
+
+  font-size: 12px;
+}
+
+.input-hint {
+  margin-top: 0.45rem;
+
+  color: var(--text-muted);
+
+  font-size: 12px;
+}

@@ -1,0 +1,43 @@
+.container-xl {
+  width: 100%;
+  max-width: 1320px;
+
+  margin: 0 auto;
+  padding: 0 1.5rem;
+}
+
+.container-lg {
+  width: 100%;
+  max-width: 1140px;
+
+  margin: 0 auto;
+  padding: 0 1.5rem;
+}
+
+.container-md {
+  width: 100%;
+  max-width: 920px;
+
+  margin: 0 auto;
+  padding: 0 1.5rem;
+}
+
+.container-sm {
+  width: 100%;
+  max-width: 460px;
+
+  margin: 0 auto;
+  padding: 0 1.5rem;
+}
+
+.text-muted {
+  color: var(--text-muted);
+}
+
+.text-center {
+  text-align: center;
+}
+
+.hidden {
+  display: none !important;
+}

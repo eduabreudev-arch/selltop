@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+
+  <title>{{ APP_NAME }}{% block title %}{% endblock %}</title>
+
+  <!-- Bootstrap (local) -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='vendor/bootstrap/css/bootstrap.min.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='vendor/bootstrap-icons/font/bootstrap-icons.css') }}">
+
+  <!-- CSS global -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+
+  <!-- Favicons -->
+  <link rel="apple-touch-icon" sizes="180x180"
+        href="{{ url_for('static', filename='img/favicon/apple-touch-icon.png') }}">
+  <link rel="icon" type="image/png" sizes="32x32"
+        href="{{ url_for('static', filename='img/favicon/favicon-32x32.png') }}">
+  <link rel="icon" type="image/png" sizes="16x16"
+        href="{{ url_for('static', filename='img/favicon/favicon-16x16.png') }}">
+  <link rel="shortcut icon"
+        href="{{ url_for('static', filename='img/favicon/favicon.ico') }}">
+  <link rel="manifest"
+        href="{{ url_for('static', filename='img/favicon/site.webmanifest') }}">
+
+  {% block extra_css %}{% endblock %}
+</head>
+
+<body>
+
+{% if session.user_id %}
+  {% include "components/navbar.html" %}
+{% endif %}
+
+<div class="{% block wrapper_class %}container{% endblock %} py-4">
+
+  {% include "components/alerts.html" %}
+
+  {% block content %}{% endblock %}
+
+</div>
+
+<!-- JS -->
+<script src="{{ url_for('static', filename='vendor/bootstrap/js/bootstrap.bundle.min.js') }}"></script>
+<script src="{{ url_for('static', filename='js/main.js') }}"></script>
+
+{% block extra_js %}{% endblock %}
+
+</body>
+</html>

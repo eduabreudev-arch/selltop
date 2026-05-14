@@ -1,0 +1,50 @@
+{% macro input(
+  name,
+  label,
+  type="text",
+  placeholder="",
+  value="",
+  required=false,
+  autofocus=false,
+  icon="",
+  hint=""
+) %}
+
+<div class="form-group">
+
+  <label class="form-label">
+    {{ label }}
+  </label>
+
+  <div class="input-wrapper">
+
+    <input
+      class="form-control"
+      type="{{ type }}"
+      name="{{ name }}"
+      placeholder="{{ placeholder }}"
+      value="{{ value }}"
+      {% if required %}required{% endif %}
+      {% if autofocus %}autofocus{% endif %}
+    >
+
+    {% if type == "password" %}
+      <button
+        class="toggle-password"
+        type="button"
+      >
+        <i class="bi bi-eye"></i>
+      </button>
+    {% endif %}
+
+  </div>
+
+  {% if hint %}
+    <div class="input-hint">
+      {{ hint }}
+    </div>
+  {% endif %}
+
+</div>
+
+{% endmacro %}

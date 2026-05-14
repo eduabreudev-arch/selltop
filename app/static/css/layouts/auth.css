@@ -1,0 +1,167 @@
+.auth-page {
+  display: flex;
+
+  height: calc(100dvh - 6rem);
+
+  gap: 2rem;
+
+  overflow: hidden;
+}
+
+/* LEFT */
+
+.auth-side {
+  flex: 1;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  position: relative;
+
+  padding: 3rem;
+
+  overflow: hidden;
+
+  border: 1px solid var(--border);
+
+  border-radius: 12px;
+
+  background:
+    radial-gradient(
+      circle at top left,
+      rgba(37, 99, 235, 0.14),
+      transparent 35%
+    ),
+
+    radial-gradient(
+      circle at bottom right,
+      rgba(249, 115, 22, 0.14),
+      transparent 35%
+    ),
+
+    linear-gradient(
+      145deg,
+      rgba(255,255,255,0.92),
+      rgba(248,250,252,0.98)
+    );
+}
+
+[data-theme="dark"] .auth-side {
+  background:
+    radial-gradient(
+      circle at top left,
+      rgba(37, 99, 235, 0.16),
+      transparent 35%
+    ),
+
+    radial-gradient(
+      circle at bottom right,
+      rgba(249, 115, 22, 0.18),
+      transparent 35%
+    ),
+
+    linear-gradient(
+      145deg,
+      #0f172a,
+      #111827
+    );
+}
+
+.auth-brand {
+  width: 100%;
+  max-width: 520px;
+
+  text-align: center;
+}
+
+.auth-logo {
+  width: min(340px, 75%);
+  height: auto;
+
+  margin: 0 auto 2rem auto;
+
+  display: block;
+}
+
+.auth-subtitle {
+  max-width: 420px;
+
+  margin: 0 auto;
+
+  text-align: center;
+
+  font-size: 1rem;
+  line-height: 1.8;
+
+  color: var(--text-muted);
+}
+
+/* RIGHT */
+
+.auth-content {
+  flex: 1;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  min-width: 420px;
+}
+
+/* CARD */
+
+.auth-card {
+  width: 100%;
+  max-width: 420px;
+
+  background: var(--surface);
+
+  border: 1px solid var(--border);
+
+  border-radius: 8px;
+
+  padding: 2rem;
+
+  box-shadow: var(--shadow-md);
+
+  animation: fadeUp 0.3s ease;
+}
+
+.auth-card-header {
+  margin-bottom: 2rem;
+}
+
+.auth-card-title {
+  font-size: 1.9rem;
+  font-weight: 700;
+
+  margin-bottom: .5rem;
+}
+
+.auth-card-subtitle {
+  color: var(--text-muted);
+
+  font-size: 14px;
+}
+
+/* RESPONSIVO */
+
+@media (max-width: 992px) {
+
+  .auth-page {
+    padding: 1rem;
+  }
+
+  .auth-side {
+    display: none;
+  }
+
+  .auth-content {
+    min-width: 100%;
+  }
+
+  .auth-card {
+    max-width: 100%;
+  }
+}
