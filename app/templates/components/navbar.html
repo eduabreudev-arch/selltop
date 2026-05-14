@@ -1,0 +1,41 @@
+<nav class="navbar">
+
+  <a
+    class="navbar-brand"
+    href="{{ url_for('auth.dashboard') }}"
+  >
+
+    <img
+      id="theme-logo"
+      src="{{ url_for('static', filename='img/logo/logo_dark.svg') }}"
+      alt="{{ APP_NAME }}"
+    >
+
+  </a>
+
+  <div class="navbar-links">
+
+    <a
+      class="nav-link"
+      href="{{ url_for('auth.dashboard') }}"
+    >
+      Dashboard
+    </a>
+
+    <a
+      class="nav-link"
+      href="{{ url_for('auth.profile') }}"
+    >
+      Perfil
+    </a>
+
+    <button
+      id="theme-toggle"
+      class="btn btn-sm"
+    >
+      <i class="bi bi-moon"></i>
+    </button>
+
+  </div>
+
+</nav>

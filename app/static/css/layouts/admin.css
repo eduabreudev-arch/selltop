@@ -1,0 +1,24 @@
+.admin-table-wrapper {
+  overflow-x: auto;
+}
+
+.admin-table {
+  width: 100%;
+
+  border-collapse: collapse;
+}
+
+.admin-table th,
+.admin-table td {
+  padding: 1rem;
+
+  border-bottom: 1px solid var(--border);
+
+  text-align: left;
+}
+
+.admin-table th {
+  color: var(--text-muted);
+
+  font-size: 13px;
+}

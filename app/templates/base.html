@@ -3,116 +3,50 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>{% block title %}IAM App{% endblock %}</title>
-  <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: system-ui, sans-serif; background: #f5f5f2; color: #1a1a18; min-height: 100vh; }
 
-    /* NAV */
-    nav { background: #1a1a18; color: #fff; padding: 0 1.5rem; display: flex; align-items: center; justify-content: space-between; height: 52px; }
-    nav .brand { font-weight: 500; font-size: 16px; text-decoration: none; color: #fff; }
-    nav .nav-links { display: flex; gap: 4px; align-items: center; }
-    nav a { color: #ccc; text-decoration: none; font-size: 13px; padding: 6px 10px; border-radius: 6px; transition: background 0.15s; }
-    nav a:hover { background: rgba(255,255,255,0.1); color: #fff; }
-    nav .badge-admin { font-size: 10px; background: #e6f0fb; color: #1a55a0; padding: 2px 7px; border-radius: 20px; margin-left: 4px; }
+  <title>{{ APP_NAME }}{% block title %}{% endblock %}</title>
 
-    /* CONTAINER */
-    .container { max-width: 1100px; margin: 0 auto; padding: 2rem 1.5rem; }
-    .container-sm { max-width: 440px; margin: 3rem auto; padding: 0 1.5rem; }
+  <!-- Bootstrap (local) -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='vendor/bootstrap/css/bootstrap.min.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='vendor/bootstrap-icons/font/bootstrap-icons.css') }}">
 
-    /* CARD */
-    .card { background: #fff; border: 0.5px solid #e0e0d8; border-radius: 12px; padding: 2rem; }
-    .card h2 { font-size: 20px; font-weight: 500; margin-bottom: 1.5rem; }
+  <!-- CSS global -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
 
-    /* FORMS */
-    .form-group { margin-bottom: 1rem; }
-    label { display: block; font-size: 13px; color: #555; margin-bottom: 4px; }
-    input[type=text], input[type=email], input[type=password] {
-      width: 100%; padding: 8px 12px; border: 0.5px solid #ccc; border-radius: 8px;
-      font-size: 14px; background: #fff; color: #1a1a18; transition: border-color 0.15s;
-    }
-    input:focus { outline: none; border-color: #888; }
-    .btn { display: inline-block; padding: 9px 20px; border-radius: 8px; font-size: 14px;
-           border: 0.5px solid #ccc; background: #fff; color: #1a1a18; cursor: pointer;
-           text-decoration: none; transition: background 0.15s; }
-    .btn:hover { background: #f0f0ee; }
-    .btn-primary { background: #1a1a18; color: #fff; border-color: #1a1a18; }
-    .btn-primary:hover { background: #333; }
-    .btn-danger { background: #fff; color: #c0392b; border-color: #c0392b; }
-    .btn-danger:hover { background: #fff0ef; }
-    .btn-sm { padding: 5px 12px; font-size: 12px; }
-    .btn-full { width: 100%; text-align: center; }
+  <!-- Favicons -->
+  <link rel="apple-touch-icon" sizes="180x180"
+        href="{{ url_for('static', filename='img/favicon/apple-touch-icon.png') }}">
+  <link rel="icon" type="image/png" sizes="32x32"
+        href="{{ url_for('static', filename='img/favicon/favicon-32x32.png') }}">
+  <link rel="icon" type="image/png" sizes="16x16"
+        href="{{ url_for('static', filename='img/favicon/favicon-16x16.png') }}">
+  <link rel="shortcut icon"
+        href="{{ url_for('static', filename='img/favicon/favicon.ico') }}">
+  <link rel="manifest"
+        href="{{ url_for('static', filename='img/favicon/site.webmanifest') }}">
 
-    /* ALERTS */
-    .alerts { margin-bottom: 1.5rem; }
-    .alert { padding: 10px 14px; border-radius: 8px; font-size: 13px; margin-bottom: 8px; }
-    .alert-success { background: #e6f3ed; color: #1a7a4a; border: 0.5px solid #b3dfc8; }
-    .alert-danger  { background: #fff0ef; color: #c0392b; border: 0.5px solid #f5c0bc; }
-    .alert-warning { background: #fef9e7; color: #8a6d00; border: 0.5px solid #f5e6a3; }
-    .alert-info    { background: #e6f0fb; color: #1a55a0; border: 0.5px solid #b3cef5; }
-
-    /* MISC */
-    .text-muted { font-size: 13px; color: #888; }
-    .text-center { text-align: center; }
-    .mt-1 { margin-top: 0.5rem; }
-    .mt-2 { margin-top: 1rem; }
-    .mt-3 { margin-top: 1.5rem; }
-    .divider { border: none; border-top: 0.5px solid #e0e0d8; margin: 1.5rem 0; }
-    .link { color: #1a55a0; text-decoration: none; font-size: 13px; }
-    .link:hover { text-decoration: underline; }
-
-    /* BADGE STATUS */
-    .badge { font-size: 11px; font-weight: 500; padding: 2px 8px; border-radius: 20px; }
-    .badge-active    { background: #e6f3ed; color: #1a7a4a; }
-    .badge-pending   { background: #fef9e7; color: #8a6d00; }
-    .badge-suspended { background: #fff0ef; color: #c0392b; }
-    .badge-admin { background: #e6f0fb; color: #1a55a0; }
-    .badge-user  { background: #f5f5f2; color: #555; }
-
-    /* TABLE */
-    table { width: 100%; border-collapse: collapse; font-size: 13px; }
-    th { text-align: left; padding: 8px 12px; border-bottom: 0.5px solid #e0e0d8; color: #888; font-weight: 500; }
-    td { padding: 10px 12px; border-bottom: 0.5px solid #f0f0ee; vertical-align: middle; }
-    tr:last-child td { border-bottom: none; }
-    .table-actions { display: flex; gap: 6px; flex-wrap: wrap; }
-
-    /* PASSWORD STRENGTH */
-    .pw-hint { font-size: 11px; color: #888; margin-top: 4px; }
-
-    /* SECTION TITLE */
-    .section-title { font-size: 16px; font-weight: 500; margin-bottom: 1rem; }
-    .section-divider { border: none; border-top: 0.5px solid #e0e0d8; margin: 2rem 0; }
-  </style>
+  {% block extra_css %}{% endblock %}
 </head>
+
 <body>
 
 {% if session.user_id %}
-<nav>
-  <a class="brand" href="{{ url_for('auth.dashboard') }}">IAM App</a>
-  <div class="nav-links">
-    <a href="{{ url_for('auth.dashboard') }}">Dashboard</a>
-    <a href="{{ url_for('auth.profile') }}">Perfil</a>
-    {% if session.user_role == 'admin' %}
-      <a href="{{ url_for('auth.admin_users') }}">Usuários <span class="badge-admin">admin</span></a>
-    {% endif %}
-    <a href="{{ url_for('auth.logout') }}">Sair</a>
-  </div>
-</nav>
+  {% include "components/navbar.html" %}
 {% endif %}
 
-<div class="{% block wrapper_class %}container{% endblock %}">
-  {% with messages = get_flashed_messages(with_categories=true) %}
-    {% if messages %}
-      <div class="alerts mt-2">
-        {% for category, message in messages %}
-          <div class="alert alert-{{ category }}">{{ message }}</div>
-        {% endfor %}
-      </div>
-    {% endif %}
-  {% endwith %}
+<div class="{% block wrapper_class %}container{% endblock %} py-4">
+
+  {% include "components/alerts.html" %}
 
   {% block content %}{% endblock %}
+
 </div>
+
+<!-- JS -->
+<script src="{{ url_for('static', filename='vendor/bootstrap/js/bootstrap.bundle.min.js') }}"></script>
+<script src="{{ url_for('static', filename='js/main.js') }}"></script>
+
+{% block extra_js %}{% endblock %}
 
 </body>
 </html>

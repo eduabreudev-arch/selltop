@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="auth-page">
+
+  <!-- LEFT -->
+
+  <div class="auth-side">
+
+    <div class="auth-brand">
+
+      <img
+        id="theme-logo"
+        class="auth-logo"
+        src="{{ url_for('static', filename='img/logo/logo.svg') }}"
+        alt="{{ APP_NAME }}"
+      >
+
+      <p class="auth-subtitle">
+        Plataforma moderna para gestão <br> e crescimento do seu negócio.
+      </p>
+
+    </div>
+
+  </div>
+
+  <!-- RIGHT -->
+
+  <div class="auth-content">
+
+    <div class="auth-card">
+
+      {% block auth_content %}{% endblock %}
+
+    </div>
+
+  </div>
+
+</div>
+
+{% endblock %}
