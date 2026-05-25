@@ -15,7 +15,7 @@
   </div>
   <div class="card" style="padding:1.25rem">
     <p class="text-muted" style="font-size:12px;margin-bottom:4px">Ações rápidas</p>
-    <a class="link" href="{{ url_for('auth.profile') }}">Editar perfil →</a>
+    <a class="link" href="{{ url_for('user.profile') }}">Editar perfil →</a>
   </div>
   {% if session.user_role == 'admin' %}
   <div class="card" style="padding:1.25rem;border-color:#b3cef5">

@@ -7,6 +7,17 @@ from app.middleware.auth_middleware import login_required, admin_required, guest
 
 auth_bp = Blueprint("auth", __name__, url_prefix="/auth")
 
+
+def get_svc() -> AuthService:
+    return current_app.auth_service
+
+def _set_session(user):
+    session.permanent = True
+    session["user_id"]   = user.id
+    session["user_name"] = user.name
+    session["user_role"] = user.role
+
+
 # ------------------------------------------------------------------ #
 # Registro
 # ------------------------------------------------------------------ #
@@ -16,12 +27,12 @@ def register():
     if request.method == "POST":
         try:
             user = get_svc().register(
-                name=request.form["name"],
-                email=request.form["email"],
-                password=request.form["password"],
+                name     = request.form["name"],
+                email    = request.form["email"],
+                password = request.form["password"],
             )
             flash("Cadastro realizado! Verifique seu e-mail.", "success")
-            return redirect(url_for("auth.login"))
+            return redirect(url_for("auth.verify_code", email=user.email))
         except AuthError as e:
             flash(str(e), "danger")
 
@@ -37,16 +48,13 @@ def login():
     if request.method == "POST":
         try:
             user = get_svc().login(
-                email=request.form["email"],
-                password=request.form["password"],
+                email    = request.form["email"],
+                password = request.form["password"],
             )
             _set_session(user)
-
             flash(f"Bem-vindo, {user.name}!", "success")
             next_page = request.args.get("next")
-
             return redirect(next_page or url_for("pages.dashboard"))
-
         except AuthError as e:
             flash(str(e), "danger")
 
@@ -65,17 +73,25 @@ def logout():
 
 
 # ------------------------------------------------------------------ #
-# Verificação de e-mail
+# Verificação por código
 # ------------------------------------------------------------------ #
-@auth_bp.route("/verify-email/<token>")
-def verify_email(token):
-    try:
-        get_svc().verify_email(token)
-        flash("E-mail verificado com sucesso!", "success")
-    except AuthError as e:
-        flash(str(e), "danger")
+@auth_bp.route("/verify-code", methods=["GET", "POST"])
+@guest_only
+def verify_code():
+    email = request.args.get("email", "")
 
-    return redirect(url_for("auth.login"))
+    if request.method == "POST":
+        email = request.form.get("email", "")
+        code  = request.form.get("code", "")
+        try:
+            user = get_svc().verify_code(email, code)
+            _set_session(user)
+            flash(f"Bem-vindo, {user.name}! Conta verificada com sucesso.", "success")
+            return redirect(url_for("pages.dashboard"))
+        except AuthError as e:
+            flash(str(e), "danger")
+
+    return render_template("auth/verify_code.html", email=email)
 
 
 # ------------------------------------------------------------------ #
@@ -86,7 +102,7 @@ def verify_email(token):
 def resend_verification():
     if request.method == "POST":
         get_svc().resend_verification(request.form["email"])
-        flash("Se existir, o e-mail foi enviado.", "info")
+        flash("Se existir, o código foi reenviado.", "info")
         return redirect(url_for("auth.login"))
 
     return render_template("auth/resend_verification.html")
