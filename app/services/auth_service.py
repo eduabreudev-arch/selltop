@@ -1,4 +1,5 @@
 import re
+import secrets
 import logging
 from datetime import datetime, timezone, timedelta
 
@@ -11,8 +12,9 @@ from app.services.email_service import EmailService
 
 logger = logging.getLogger(__name__)
 
-MAX_FAILED   = 5          # tentativas antes de bloquear
-LOCK_MINUTES = 15         # tempo de bloqueio após falhas
+MAX_FAILED   = 5
+LOCK_MINUTES = 15
+CODE_MINUTES = 5
 
 class AuthError(Exception):
     pass
@@ -20,11 +22,11 @@ class AuthError(Exception):
 class AuthService:
     def __init__(self, repo: UserRepository, email_svc: EmailService,
                  secret_key: str, token_max_age: int, base_url: str):
-        self._repo      = repo
-        self._email     = email_svc
+        self._repo       = repo
+        self._email      = email_svc
         self._serializer = URLSafeTimedSerializer(secret_key)
-        self._max_age   = token_max_age
-        self._base_url  = base_url.rstrip("/")
+        self._max_age    = token_max_age
+        self._base_url   = base_url.rstrip("/")
 
     # ------------------------------------------------------------------ #
     # Validações
@@ -65,15 +67,15 @@ class AuthService:
             raise AuthError(" ".join(errors))
 
         user = User(
-            name          = name,
-            email         = email,
-            password_hash = generate_password_hash(password),
-            role          = UserRole.USER,
-            status        = UserStatus.PENDING,
-            email_verified= False,
+            name           = name,
+            email          = email,
+            password_hash  = generate_password_hash(password),
+            role           = UserRole.USER,
+            status         = UserStatus.PENDING,
+            email_verified = False,
         )
         user = self._repo.create(user)
-        self._send_verification(user)
+        self._send_verification_code(user)
         return user
 
     # ------------------------------------------------------------------ #
@@ -87,7 +89,7 @@ class AuthService:
             raise AuthError("E-mail ou senha incorretos.")
 
         if user.is_locked():
-            raise AuthError(f"Conta bloqueada por excesso de tentativas. Tente novamente em breve.")
+            raise AuthError("Conta bloqueada por excesso de tentativas. Tente novamente em breve.")
 
         if not check_password_hash(user.password_hash, password):
             user.failed_attempts += 1
@@ -107,7 +109,6 @@ class AuthService:
         if not user.email_verified:
             raise AuthError("E-mail não verificado. Verifique sua caixa de entrada.")
 
-        # Login bem-sucedido
         user.failed_attempts = 0
         user.locked_until    = None
         user.last_login      = datetime.now(timezone.utc).isoformat()
@@ -115,39 +116,47 @@ class AuthService:
         return user
 
     # ------------------------------------------------------------------ #
-    # Verificação de e-mail
+    # Verificação por código
     # ------------------------------------------------------------------ #
-    def _send_verification(self, user: User) -> None:
-        token = self._serializer.dumps(user.email, salt="email-verify")
-        link  = f"{self._base_url}/auth/verify-email/{token}"
-        self._email.send_verification(user.email, user.name, link)
+    def _send_verification_code(self, user: User) -> None:
+        code     = str(secrets.randbelow(900000) + 100000)
+        expires  = datetime.now(timezone.utc) + timedelta(minutes=CODE_MINUTES)
+        user.verification_code            = code
+        user.verification_code_expires_at = expires.isoformat()
+        self._repo.update(user)
+        self._email.send_verification_code(user.email, user.name, code)
 
-    def verify_email(self, token: str) -> User:
-        try:
-            email = self._serializer.loads(token, salt="email-verify", max_age=self._max_age)
-        except SignatureExpired:
-            raise AuthError("Link expirado. Solicite um novo.")
-        except BadSignature:
-            raise AuthError("Link inválido.")
+    def verify_code(self, email: str, code: str) -> User:
+        email = email.strip().lower()
+        user  = self._repo.find_by_email(email)
 
-        user = self._repo.find_by_email(email)
         if not user:
             raise AuthError("Usuário não encontrado.")
         if user.email_verified:
-            return user  # já verificado — ok
+            return user
 
-        user.email_verified = True
-        user.status         = UserStatus.ACTIVE
+        if not user.verification_code or not user.verification_code_expires_at:
+            raise AuthError("Nenhum código pendente. Solicite um novo.")
+
+        now = datetime.now(timezone.utc).isoformat()
+        if now > user.verification_code_expires_at:
+            raise AuthError("Código expirado. Solicite um novo.")
+
+        if user.verification_code != code.strip():
+            raise AuthError("Código inválido.")
+
+        user.email_verified               = True
+        user.status                       = UserStatus.ACTIVE
+        user.verification_code            = None
+        user.verification_code_expires_at = None
         self._repo.update(user)
         return user
 
     def resend_verification(self, email: str) -> None:
         user = self._repo.find_by_email(email.strip().lower())
-        if not user:
-            return  # silencioso para não vazar se e-mail existe
-        if user.email_verified:
+        if not user or user.email_verified:
             return
-        self._send_verification(user)
+        self._send_verification_code(user)
 
     # ------------------------------------------------------------------ #
     # Esqueci minha senha
@@ -155,7 +164,7 @@ class AuthService:
     def request_password_reset(self, email: str) -> None:
         user = self._repo.find_by_email(email.strip().lower())
         if not user or not user.email_verified:
-            return  # silencioso
+            return
         token = self._serializer.dumps(user.email, salt="pw-reset")
         link  = f"{self._base_url}/auth/reset-password/{token}"
         self._email.send_password_reset(user.email, user.name, link)
@@ -183,7 +192,7 @@ class AuthService:
         return user
 
     # ------------------------------------------------------------------ #
-    # Atualização de perfil / senha logado
+    # Perfil
     # ------------------------------------------------------------------ #
     def update_profile(self, user_id: int, name: str) -> User:
         user = self._repo.find_by_id(user_id)

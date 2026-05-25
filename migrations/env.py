@@ -45,8 +45,9 @@ def run_migrations_turso() -> None:
 
     applied = False
     for sc in reversed(list(script.walk_revisions("base", "heads"))):
-        if current and sc.revision <= current:
+        if current and sc.revision == current:
             print(f"Pulando {sc.revision} — já aplicada")
+            current = None  # a partir daqui aplica as próximas
             continue
         print(f"Aplicando {sc.revision}: {sc.doc}")
         for sql in sc.module.UPGRADE_SQL:

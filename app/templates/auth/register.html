@@ -11,29 +11,33 @@
 <form method="POST">
 
   {{ input(
-    "Nome completo",
     "name",
+    "Nome completo",
     "text",
     "Seu nome",
-    True,
-    True
+    "",
+    true,
+    true
   ) }}
 
   {{ input(
+    "email",
     "E-mail",
     "email",
-    "email",
     "seu@email.com",
-    True
+    "",
+    true
   ) }}
 
   {{ input(
+    "password",
     "Senha",
     "password",
-    "password",
     "••••••••",
-    True,
-    False,
+    "",
+    true,
+    false,
+    "",
     "Mínimo 8 caracteres, 1 maiúscula, 1 número e 1 símbolo."
   ) }}
 
