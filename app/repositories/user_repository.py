@@ -1,5 +1,4 @@
 import sqlite3
-from xmlrpc import client
 import libsql_experimental as libsql
 from datetime import datetime, timezone
 from typing import Optional
@@ -7,12 +6,7 @@ from typing import Optional
 from app.models.user import User
 
 
-# ─────────────────────────────────────────────────────────────────────────────
-# Helpers de conexão
-# ─────────────────────────────────────────────────────────────────────────────
-
 def _get_local_conn(db_path: str) -> sqlite3.Connection:
-    """Conexão SQLite local — usado apenas em desenvolvimento."""
     conn = sqlite3.connect(db_path)
     conn.row_factory = sqlite3.Row
     conn.execute("PRAGMA journal_mode=WAL")
@@ -23,47 +17,33 @@ def _get_turso_client(url: str, auth_token: str):
     return libsql.connect(database=url, auth_token=auth_token)
 
 
-# ─────────────────────────────────────────────────────────────────────────────
-# Init do banco local (apenas dev — sem TURSO_URL)
-# ─────────────────────────────────────────────────────────────────────────────
-
 def init_db(db_path: str) -> None:
-    """Cria as tabelas no SQLite local se ainda não existirem."""
     with _get_local_conn(db_path) as conn:
         conn.execute("""
             CREATE TABLE IF NOT EXISTS users (
-                id              INTEGER PRIMARY KEY AUTOINCREMENT,
-                name            TEXT    NOT NULL,
-                email           TEXT    NOT NULL UNIQUE,
-                password_hash   TEXT    NOT NULL,
-                role            TEXT    NOT NULL DEFAULT 'user',
-                status          TEXT    NOT NULL DEFAULT 'pending',
-                email_verified  INTEGER NOT NULL DEFAULT 0,
-                created_at      TEXT    NOT NULL,
-                updated_at      TEXT    NOT NULL,
-                last_login      TEXT,
-                failed_attempts INTEGER NOT NULL DEFAULT 0,
-                locked_until    TEXT
+                id                           INTEGER PRIMARY KEY AUTOINCREMENT,
+                name                         TEXT    NOT NULL,
+                email                        TEXT    NOT NULL UNIQUE,
+                password_hash                TEXT    NOT NULL,
+                role                         TEXT    NOT NULL DEFAULT 'user',
+                status                       TEXT    NOT NULL DEFAULT 'pending',
+                email_verified               INTEGER NOT NULL DEFAULT 0,
+                created_at                   TEXT    NOT NULL,
+                updated_at                   TEXT    NOT NULL,
+                last_login                   TEXT,
+                failed_attempts              INTEGER NOT NULL DEFAULT 0,
+                locked_until                 TEXT,
+                verification_code            TEXT,
+                verification_code_expires_at TEXT
             )
         """)
         conn.execute("CREATE INDEX IF NOT EXISTS idx_users_email ON users(email)")
 
 
-# ─────────────────────────────────────────────────────────────────────────────
-# Repositório — funciona com SQLite local e Turso transparentemente
-# ─────────────────────────────────────────────────────────────────────────────
-
 class UserRepository:
     def __init__(self, db_config: dict):
-        """
-        db_config exemplos:
-          Dev local:  {"path": "selltop.db"}
-          Produção:   {"url": "libsql://...", "auth_token": "..."}
-        """
-        self._config = db_config
+        self._config   = db_config
         self._is_turso = "url" in db_config
-
-    # ── Execução de queries ───────────────────────────────────────────────────
 
     def _execute(self, sql: str, params: tuple = ()) -> list[dict]:
         if self._is_turso:
@@ -71,7 +51,7 @@ class UserRepository:
                 self._config["url"], self._config["auth_token"]
             )
             cursor = client.execute(sql, tuple(params))
-            rows = cursor.fetchall()
+            rows   = cursor.fetchall()
             if not rows:
                 return []
             cols = [desc[0] for desc in cursor.description]
@@ -106,6 +86,13 @@ class UserRepository:
         )
         return User.from_row(rows[0]) if rows else None
 
+    def find_by_email_and_code(self, email: str, code: str) -> Optional[User]:
+        rows = self._execute(
+            "SELECT * FROM users WHERE email = ? AND verification_code = ? COLLATE NOCASE",
+            (email, code),
+        )
+        return User.from_row(rows[0]) if rows else None
+
     def list_all(self) -> list[User]:
         rows = self._execute("SELECT * FROM users ORDER BY created_at DESC")
         return [User.from_row(r) for r in rows]
@@ -122,12 +109,14 @@ class UserRepository:
         last_id = self._execute_write(
             """INSERT INTO users
                (name, email, password_hash, role, status, email_verified,
-                created_at, updated_at, last_login, failed_attempts, locked_until)
-               VALUES (?,?,?,?,?,?,?,?,?,?,?)""",
+                created_at, updated_at, last_login, failed_attempts, locked_until,
+                verification_code, verification_code_expires_at)
+               VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)""",
             (
                 user.name, user.email, user.password_hash, user.role, user.status,
                 int(user.email_verified), user.created_at, user.updated_at,
                 user.last_login, user.failed_attempts, user.locked_until,
+                user.verification_code, user.verification_code_expires_at,
             ),
         )
         user.id = last_id
@@ -139,12 +128,15 @@ class UserRepository:
             """UPDATE users SET
                name=?, email=?, password_hash=?, role=?, status=?,
                email_verified=?, updated_at=?, last_login=?,
-               failed_attempts=?, locked_until=?
+               failed_attempts=?, locked_until=?,
+               verification_code=?, verification_code_expires_at=?
                WHERE id=?""",
             (
                 user.name, user.email, user.password_hash, user.role, user.status,
                 int(user.email_verified), user.updated_at, user.last_login,
-                user.failed_attempts, user.locked_until, user.id,
+                user.failed_attempts, user.locked_until,
+                user.verification_code, user.verification_code_expires_at,
+                user.id,
             ),
         )
 

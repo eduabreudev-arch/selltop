@@ -26,6 +26,6 @@ def guest_only(f):
     @wraps(f)
     def decorated(*args, **kwargs):
         if "user_id" in session:
-            return redirect(url_for("auth.dashboard"))
+            return redirect(url_for("pages.dashboard"))
         return f(*args, **kwargs)
     return decorated
